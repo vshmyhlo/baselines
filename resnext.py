@@ -1,6 +1,7 @@
 import tensorflow as tf
 
 
+# TODO: make baseclass
 # TODO: use enum for downsample type
 # TODO: remove redundant `name`
 # TODO: check initialization
