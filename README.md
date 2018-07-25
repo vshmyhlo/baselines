@@ -1,1 +1,1 @@
-# Idiomatic implementations of common machine learning algorithms in TensorFlow
+# Idiomatic and customizable implementations of common Neural Network algorithms in TensorFlow

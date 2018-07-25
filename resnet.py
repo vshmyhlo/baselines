@@ -192,13 +192,38 @@ class ResBlock(tf.layers.Layer):
         return input
 
 
-class ResNet_50(tf.layers.Layer):
-    def __init__(self, name='resnet'):
+class ResNet(tf.layers.Layer):
+    def __init__(self, kernel_initializer, kernel_regularizer, name='resnet'):
         super().__init__(name=name)
 
-        self._kernel_initializer = tf.contrib.layers.variance_scaling_initializer(
-            factor=2.0, mode='FAN_IN', uniform=False)
-        self._kernel_regularizer = tf.contrib.layers.l2_regularizer(scale=1e-4)
+        self._kernel_initializer = kernel_initializer
+        self._kernel_regularizer = kernel_regularizer
+
+    def call(self, input, training):
+        input = self._conv_input(input, training=training)
+        C1 = input
+        input = self._res_block_1(input, training=training)
+        C2 = input
+        input = self._res_block_2(input, training=training)
+        C3 = input
+        input = self._res_block_3(input, training=training)
+        C4 = input
+        input = self._res_block_4(input, training=training)
+        C5 = input
+
+        return {'C1': C1, 'C2': C2, 'C3': C3, 'C4': C4, 'C5': C5}
+
+
+class ResNet_50(ResNet):
+    def __init__(self, kernel_initializer=None, kernel_regularizer=None, name='resnet_50'):
+        if kernel_initializer is None:
+            kernel_initializer = tf.contrib.layers.variance_scaling_initializer(
+                factor=2.0, mode='FAN_IN', uniform=False)
+
+        if kernel_regularizer is None:
+            kernel_regularizer = tf.contrib.layers.l2_regularizer(scale=1e-4)
+
+        super().__init__(kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer, name=name)
 
     def build(self, input_shape):
         self._conv_input = ConvInput(
@@ -213,19 +238,6 @@ class ResNet_50(tf.layers.Layer):
             2048, depth=3, kernel_initializer=self._kernel_initializer, kernel_regularizer=self._kernel_regularizer)
 
         super().build(input_shape)
-
-    def call(self, input, training):
-        input = self._conv_input(input, training=training)
-        input = self._res_block_1(input, training=training)
-        C2 = input
-        input = self._res_block_2(input, training=training)
-        C3 = input
-        input = self._res_block_3(input, training=training)
-        C4 = input
-        input = self._res_block_4(input, training=training)
-        C5 = input
-
-        return {'C2': C2, 'C3': C3, 'C4': C4, 'C5': C5}
 
 
 def main():

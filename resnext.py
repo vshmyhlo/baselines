@@ -165,13 +165,6 @@ class ResNeXt(tf.layers.Layer):
         self._kernel_initializer = kernel_initializer
         self._kernel_regularizer = kernel_regularizer
 
-    def build(self, input_shape):
-        self._conv_1 = ResNeXt_ConvInput(
-            kernel_initializer=self._kernel_initializer, kernel_regularizer=self._kernel_regularizer)
-        self._conv_1_max_pool = tf.layers.MaxPooling2D(3, 2, padding='same')
-
-        super().build(input_shape)
-
     def call(self, input, training):
         input = self._conv_1(input, training=training)
         C1 = input
@@ -189,13 +182,21 @@ class ResNeXt(tf.layers.Layer):
 
 
 class ResNeXt_50(ResNeXt):
-    def __init__(self, name='resnext_v2_50'):
-        kernel_initializer = tf.contrib.layers.variance_scaling_initializer(factor=2.0, mode='FAN_IN', uniform=False)
-        kernel_regularizer = tf.contrib.layers.l2_regularizer(scale=1e-4)
+    def __init__(self, kernel_initializer=None, kernel_regularizer=None, name='resnext_v2_50'):
+        if kernel_initializer is None:
+            kernel_initializer = tf.contrib.layers.variance_scaling_initializer(
+                factor=2.0, mode='FAN_IN', uniform=False)
+
+        if kernel_regularizer is None:
+            kernel_regularizer = tf.contrib.layers.l2_regularizer(scale=1e-4)
 
         super().__init__(kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer, name=name)
 
     def build(self, input_shape):
+        self._conv_1 = ResNeXt_ConvInput(
+            kernel_initializer=self._kernel_initializer, kernel_regularizer=self._kernel_regularizer)
+        self._conv_1_max_pool = tf.layers.MaxPooling2D(3, 2, padding='same')
+
         self._conv_2 = ResNeXt_Block(
             filters=64, depth=3, downsample=False, kernel_initializer=self._kernel_initializer,
             kernel_regularizer=self._kernel_regularizer)
