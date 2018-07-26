@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as tfk
 
 
-# TODO: no _ between conv and 1
+# TODO: _ between conv and 1
 # TODO: args by lines in def
 # TODO: args by lines in call
 # TODO: check everything is correct
