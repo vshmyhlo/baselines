@@ -1,6 +1,7 @@
 import tensorflow as tf
 
 
+# TODO: rename bn to norm
 # TODO: make baseclass
 # TODO: use enum for downsample type
 # TODO: remove redundant `name`
