@@ -90,7 +90,6 @@ class DenseNet_Block(Sequential):
         super().__init__(layers, name=name)
 
     def call(self, input, training):
-        # TODO: collect outputs and then merge
         for layer in self.layers:
             output = layer(input, training)
             input = tf.concat([input, output], -1)
@@ -286,19 +285,3 @@ class DenseNetBC_169(DenseNetBC_ImageNet):
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer,
             name=name)
-
-
-def main():
-    image = tf.zeros((8, 224, 224, 3))
-
-    net = DenseNetBC_121(dropout_rate=0.2)
-    output = net(image, training=True)
-
-    for k in output:
-        shape = output[k].shape
-        assert shape[1] == shape[2] == 224 // 2**int(k[1:]), 'invalid shape {} for layer {}'.format(shape, k)
-        print(output[k])
-
-
-if __name__ == '__main__':
-    main()

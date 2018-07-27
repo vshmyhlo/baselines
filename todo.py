@@ -6,3 +6,4 @@
 # TODO: no `build`
 # TODO: no _ before layer name
 # TODO: check super calls
+# TODO: make dropout optional
