@@ -7,6 +7,7 @@ import mobilenet_v2
 from network import Network, Sequential
 
 
+# TODO: remove this
 # TODO: refactor with tf.layers.Layer
 
 def build_backbone(backbone, activation, dropout_rate):

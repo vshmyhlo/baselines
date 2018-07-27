@@ -20,24 +20,17 @@ class ResNeXt_Bottleneck(tf.layers.Layer):
 
         super().__init__(name=name)
 
-        self._filters = filters
-        self._project = project
-        self._kernel_initializer = kernel_initializer
-        self._kernel_regularizer = kernel_regularizer
-        self._cardinality = cardinality
-
-    def build(self, input_shape):
         # identity
         if self._project == 'down':  # TODO: refactor to enum
             self._identity_conv = tf.layers.Conv2D(
-                self._filters * 4, 3, 2, padding='same', use_bias=False,
-                kernel_initializer=self._kernel_initializer, kernel_regularizer=self._kernel_regularizer)
+                filters * 4, 3, 2, padding='same', use_bias=False,
+                kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer)
             self._identity_bn = tf.layers.BatchNormalization()
 
         elif self._project:
             self._identity_conv = tf.layers.Conv2D(
-                self._filters * 4, 1, use_bias=False, kernel_initializer=self._kernel_initializer,
-                kernel_regularizer=self._kernel_regularizer)
+                filters * 4, 1, use_bias=False, kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer)
             self._identity_bn = tf.layers.BatchNormalization()
         else:
             self._identity_conv = None
@@ -45,8 +38,8 @@ class ResNeXt_Bottleneck(tf.layers.Layer):
 
         # conv_1
         self._conv_1 = tf.layers.Conv2D(
-            self._filters * 2, 1, use_bias=False, kernel_initializer=self._kernel_initializer,
-            kernel_regularizer=self._kernel_regularizer)
+            filters * 2, 1, use_bias=False, kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer)
         self._bn_1 = tf.layers.BatchNormalization()
 
         # conv_2
@@ -54,22 +47,20 @@ class ResNeXt_Bottleneck(tf.layers.Layer):
         for _ in range(self._cardinality):
             strides = 2 if self._project == 'down' else 1
             conv = tf.layers.Conv2D(
-                (self._filters * 2) // self._cardinality, 3, strides, padding='same', use_bias=False,
-                kernel_initializer=self._kernel_initializer, kernel_regularizer=self._kernel_regularizer)
+                (self._filters * 2) // cardinality, 3, strides, padding='same', use_bias=False,
+                kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer)
             self._conv_2.append(conv)
 
         self._bn_2 = []
-        for _ in range(self._cardinality):
+        for _ in range(cardinality):
             bn = tf.layers.BatchNormalization()
             self._bn_2.append(bn)
 
         # conv_3
         self._conv_3 = tf.layers.Conv2D(
-            self._filters * 4, 1, use_bias=False, kernel_initializer=self._kernel_initializer,
+            filters * 4, 1, use_bias=False, kernel_initializer=self._kernel_initializer,
             kernel_regularizer=self._kernel_regularizer)
         self._bn_3 = tf.layers.BatchNormalization()
-
-        super().build(input_shape)
 
     def call(self, input, training):
         # identity
@@ -113,7 +104,6 @@ class ResNeXt_Block(tf.layers.Layer):
         self._kernel_initializer = kernel_initializer
         self._kernel_regularizer = kernel_regularizer
 
-    def build(self, input_shape):
         layers = []
 
         for i in range(self._depth):
@@ -140,43 +130,36 @@ class ResNeXt_ConvInput(tf.layers.Layer):
     def __init__(self, kernel_initializer, kernel_regularizer, name='resnext_conv1'):
         super().__init__(name=name)
 
-        self._kernel_initializer = kernel_initializer
-        self._kernel_regularizer = kernel_regularizer
-
-    def build(self, input_shape):
-        self._conv = tf.layers.Conv2D(
-            64, 7, 2, padding='same', use_bias=False, kernel_initializer=self._kernel_initializer,
-            kernel_regularizer=self._kernel_regularizer)
-        self._bn = tf.layers.BatchNormalization()
-
-        super().build(input_shape)
+        self.conv = tf.layers.Conv2D(
+            64,
+            7,
+            2,
+            padding='same',
+            use_bias=False,
+            kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer)
+        self.bn = tf.layers.BatchNormalization()
 
     def call(self, input, training):
-        input = self._conv(input)
-        input = self._bn(input, training=training)
+        input = self.conv(input)
+        input = self.bn(input, training=training)
         input = tf.nn.relu(input)
 
         return input
 
 
 class ResNeXt(tf.layers.Layer):
-    def __init__(self, kernel_initializer, kernel_regularizer, name='resnext'):
-        super().__init__(name=name)
-
-        self._kernel_initializer = kernel_initializer
-        self._kernel_regularizer = kernel_regularizer
-
     def call(self, input, training):
-        input = self._conv_1(input, training=training)
+        input = self.conv_1(input, training=training)
         C1 = input
-        input = self._conv_1_max_pool(input)
-        input = self._conv_2(input, training=training)
+        input = self.conv_1_max_pool(input)
+        input = self.conv_2(input, training=training)
         C2 = input
-        input = self._conv_3(input, training=training)
+        input = self.conv_3(input, training=training)
         C3 = input
-        input = self._conv_4(input, training=training)
+        input = self.conv_4(input, training=training)
         C4 = input
-        input = self._conv_5(input, training=training)
+        input = self.conv_5(input, training=training)
         C5 = input
 
         return {'C1': C1, 'C2': C2, 'C3': C3, 'C4': C4, 'C5': C5}
@@ -191,27 +174,24 @@ class ResNeXt_50(ResNeXt):
         if kernel_regularizer is None:
             kernel_regularizer = tf.contrib.layers.l2_regularizer(scale=1e-4)
 
-        super().__init__(kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer, name=name)
+        super().__init__(name=name)
 
-    def build(self, input_shape):
-        self._conv_1 = ResNeXt_ConvInput(
-            kernel_initializer=self._kernel_initializer, kernel_regularizer=self._kernel_regularizer)
-        self._conv_1_max_pool = tf.layers.MaxPooling2D(3, 2, padding='same')
+        self.conv_1 = ResNeXt_ConvInput(
+            kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer)
+        self.conv_1_max_pool = tf.layers.MaxPooling2D(3, 2, padding='same')
 
-        self._conv_2 = ResNeXt_Block(
-            filters=64, depth=3, downsample=False, kernel_initializer=self._kernel_initializer,
-            kernel_regularizer=self._kernel_regularizer)
-        self._conv_3 = ResNeXt_Block(
-            filters=128, depth=4, downsample=True, kernel_initializer=self._kernel_initializer,
-            kernel_regularizer=self._kernel_regularizer)
-        self._conv_4 = ResNeXt_Block(
-            filters=256, depth=6, downsample=True, kernel_initializer=self._kernel_initializer,
-            kernel_regularizer=self._kernel_regularizer)
-        self._conv_5 = ResNeXt_Block(
-            filters=512, depth=3, downsample=True, kernel_initializer=self._kernel_initializer,
-            kernel_regularizer=self._kernel_regularizer)
-
-        super().build(input_shape)
+        self.conv_2 = ResNeXt_Block(
+            filters=64, depth=3, downsample=False, kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer)
+        self.conv_3 = ResNeXt_Block(
+            filters=128, depth=4, downsample=True, kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer)
+        self.conv_4 = ResNeXt_Block(
+            filters=256, depth=6, downsample=True, kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer)
+        self.conv_5 = ResNeXt_Block(
+            filters=512, depth=3, downsample=True, kernel_initializer=kernel_initializer,
+            kernel_regularizer=kernel_regularizer)
 
 
 def main():

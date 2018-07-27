@@ -34,7 +34,6 @@ class UpsampleMerge(Model):
             Normalization()
         ])
 
-    # TODO: refactor arguments
     # TODO: refactor upsampling to function
     def call(self, input, lateral, training):
         lateral = self.conv_lateral(lateral, training)
