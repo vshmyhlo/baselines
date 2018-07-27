@@ -139,7 +139,7 @@ class DenseNetBC_ImageNet(Model):
                  name='densenet_bc_imagenet'):
         super().__init__(name=name)
 
-        self.conv1 = Sequential([
+        self.conv_1 = Sequential([
             tfk.layers.Conv2D(
                 2 * growth_rate,
                 7,
@@ -152,7 +152,7 @@ class DenseNetBC_ImageNet(Model):
             tfk.layers.BatchNormalization(),
             tfk.layers.Activation(tf.nn.relu)
         ])
-        self.conv1_max_pool = tfk.layers.MaxPooling2D(3, 2, padding='same')
+        self.conv_1_max_pool = tfk.layers.MaxPooling2D(3, 2, padding='same')
 
         self.dense_block_1 = DenseNet_Block(
             growth_rate,
@@ -215,9 +215,9 @@ class DenseNetBC_ImageNet(Model):
             name='dense_block4')
 
     def call(self, input, training):
-        input = self.conv1(input, training)
+        input = self.conv_1(input, training)
         C1 = input
-        input = self.conv1_max_pool(input)
+        input = self.conv_1_max_pool(input)
         input = self.dense_block_1(input, training)
         C2 = input
         input = self.transition_layer_1(input, training)

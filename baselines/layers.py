@@ -74,4 +74,5 @@ class DepthwiseConv2D(tfk.layers.Layer):
         return input
 
 
+# preferred normalization type
 Normalization = GroupNormalization
