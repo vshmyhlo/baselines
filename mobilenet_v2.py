@@ -15,6 +15,7 @@ import layers
 # TODO: private fields
 # TODO: check shapes
 # TODO: move everything to `build`
+# TODO: no build
 
 
 class Bottleneck(tfk.Model):
