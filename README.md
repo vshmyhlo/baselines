@@ -1,4 +1,4 @@
-# Idiomatic and customizable implementations of common Neural Network algorithms in TensorFlow
+# Idiomatic implementations of common Neural Network algorithms in TensorFlow (work in progress)
 
 ### TODO:
 * use channelwise dropout for models with dropout

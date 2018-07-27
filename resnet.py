@@ -208,20 +208,3 @@ class ResNet_50(ResNet):
             1024, depth=6, kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer)
         self.res_block_4 = ResBlock(
             2048, depth=3, kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer)
-
-
-def main():
-    image = tf.zeros((8, 224, 224, 3))
-
-    net = ResNet_50()
-    output = net(image, training=True)
-    print(net.updates)
-
-    for k in output:
-        shape = output[k].shape
-        assert shape[1] == shape[2] == 224 // 2**int(k[1:]), 'invalid shape {} for layer {}'.format(shape, k)
-        print(output[k])
-
-
-if __name__ == '__main__':
-    main()
