@@ -36,7 +36,7 @@ class UpsampleMerge(Model):
 
     # TODO: refactor arguments
     # TODO: refactor upsampling to function
-    def call(self, lateral, input, training):
+    def call(self, input, lateral, training):
         lateral = self.conv_lateral(lateral, training)
         lateral_size = tf.shape(lateral)[1:3]
         input = tf.image.resize_images(
@@ -111,7 +111,7 @@ class FeaturePyramidNetwork(Model):
         P6 = self.p6_from_c5(input['C5'], training)
         P7 = self.p7_from_p6(P6, training)
         P5 = self.p5_from_c5(input['C5'], training)
-        P4 = self.p4_from_c4p5(input['C4'], P5, training)
-        P3 = self.p3_from_c3p4(input['C3'], P4, training)
+        P4 = self.p4_from_c4p5(P5, input['C4'], training)
+        P3 = self.p3_from_c3p4(P4, input['C3'], training)
 
         return {'P3': P3, 'P4': P4, 'P5': P5, 'P6': P6, 'P7': P7}
