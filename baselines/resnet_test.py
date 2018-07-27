@@ -1,4 +1,4 @@
-from resnet import ResNet_50
+from baselines.resnet import ResNet_50
 import tensorflow as tf
 
 

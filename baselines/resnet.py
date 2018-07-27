@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras as tfk
-from utils import Model, Sequential
+from baselines.utils import Model, Sequential
 
 
 # TODO: make baseclass

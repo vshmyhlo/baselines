@@ -1,5 +1,5 @@
 import tensorflow as tf
-from densenet import DenseNetBC_121, DenseNetBC_169
+from baselines.densenet import DenseNetBC_121, DenseNetBC_169
 
 
 def test_output_shape():

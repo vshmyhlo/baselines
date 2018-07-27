@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as tfk
-from utils import Model, Sequential
-from layers import Normalization
+from baselines.utils import Model, Sequential
+from baselines.layers import Normalization
 
 
 class UpsampleMerge(Model):

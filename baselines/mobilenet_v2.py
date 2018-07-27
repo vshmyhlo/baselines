@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras as tfk
-import layers
+import baselines.layers
 
 
 # TODO: do not use _ prefix anywhere

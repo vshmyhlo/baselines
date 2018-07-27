@@ -1,5 +1,5 @@
-from resnet import ResNet_50
-from fpn import FeaturePyramidNetwork
+from baselines.resnet import ResNet_50
+from baselines.fpn import FeaturePyramidNetwork
 import tensorflow as tf
 import pytest
 
