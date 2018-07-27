@@ -1,16 +1,9 @@
 import tensorflow as tf
 import tensorflow.keras as tfk
+from utils import Model, Sequential
 
 
-# TODO: _ between conv and 1
-# TODO: args by lines in def
-# TODO: args by lines in call
-# TODO: check everything is correct
-# TODO: no `build`
-# TODO: no _ before layer name
-# TODO: check super calls
-
-class CompositeFunction(tfk.Sequential):
+class CompositeFunction(Sequential):
     def __init__(self,
                  filters,
                  dropout_rate,
@@ -33,7 +26,7 @@ class CompositeFunction(tfk.Sequential):
         super().__init__(layers, name=name)
 
 
-class BottleneckCompositeFunction(tfk.Sequential):
+class BottleneckCompositeFunction(Sequential):
     def __init__(self,
                  filters,
                  dropout_rate,
@@ -65,7 +58,7 @@ class BottleneckCompositeFunction(tfk.Sequential):
         super().__init__(layers, name=name)
 
 
-class DenseNet_Block(tfk.Model):
+class DenseNet_Block(Sequential):
     def __init__(self,
                  growth_rate,
                  depth,
@@ -74,12 +67,11 @@ class DenseNet_Block(tfk.Model):
                  kernel_initializer,
                  kernel_regularizer,
                  name='densnet_block'):
-        super().__init__(name=name)
 
-        self.composite_functions = []
+        layers = []
         for i in range(depth):
             if bottleneck:
-                self.composite_functions.append(
+                layers.append(
                     BottleneckCompositeFunction(
                         growth_rate,
                         dropout_rate=dropout_rate,
@@ -87,7 +79,7 @@ class DenseNet_Block(tfk.Model):
                         kernel_regularizer=kernel_regularizer,
                         name='composite_function{}'.format(i + 1)))
             else:
-                self.composite_functions.append(
+                layers.append(
                     CompositeFunction(
                         growth_rate,
                         dropout_rate=dropout_rate,
@@ -95,15 +87,18 @@ class DenseNet_Block(tfk.Model):
                         kernel_regularizer=kernel_regularizer,
                         name='composite_function{}'.format(i + 1)))
 
+        super().__init__(layers, name=name)
+
     def call(self, input, training):
-        for f in self.composite_functions:
-            output = f(input, training)
+        # TODO: collect outputs and then merge
+        for layer in self.layers:
+            output = layer(input, training)
             input = tf.concat([input, output], -1)
 
         return input
 
 
-class TransitionLayer(tfk.Sequential):
+class TransitionLayer(Sequential):
     def __init__(self,
                  input_filters,
                  compression_factor,
@@ -133,7 +128,7 @@ class TransitionLayer(tfk.Sequential):
         return super().call(input, training)
 
 
-class DenseNetBC_ImageNet(tfk.Model):
+class DenseNetBC_ImageNet(Model):
     def __init__(self,
                  blocks,
                  growth_rate,
@@ -145,7 +140,7 @@ class DenseNetBC_ImageNet(tfk.Model):
                  name='densenet_bc_imagenet'):
         super().__init__(name=name)
 
-        self.conv1 = tfk.Sequential([
+        self.conv1 = Sequential([
             tfk.layers.Conv2D(
                 2 * growth_rate,
                 7,

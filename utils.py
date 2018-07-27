@@ -13,15 +13,25 @@ class Model(tfk.Model):
 
 
 class Sequential(Model):
-    def __init__(self, layers, name='sequential'):
+    def __init__(self, layers, name=None):
         super().__init__(name=name)
-        self.sequential_layers = layers
+
+        if layers:
+            for layer in layers:
+                self.add(layer)
+
+    @property
+    def layers(self):
+        return self._layers
+
+    def add(self, layer):
+        self._layers.append(layer)
 
     def call(self, input, training):
-        for l in self.sequential_layers:
-            if 'training' in tf_inspect.getargspec(l.call).args:
-                input = l(input, training=training)
+        for layer in self.layers:
+            if 'training' in tf_inspect.getargspec(layer.call).args:
+                input = layer(input, training=training)
             else:
-                input = l(input)
+                input = layer(input)
 
         return input
