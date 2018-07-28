@@ -1,7 +1,6 @@
 import tensorflow as tf
-import tensorflow.keras as tfk
-from baselines.utils import Model, Sequential
-from baselines.layers import Normalization
+from baselines.models import Model, Sequential
+import baselines.layers as L
 
 
 class UpsampleMerge(Model):
@@ -12,18 +11,18 @@ class UpsampleMerge(Model):
         super().__init__(name=name)
 
         self.conv_lateral = Sequential([
-            tfk.layers.Conv2D(
+            L.Conv2D(
                 256,
                 1,
                 1,
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            Normalization()
+            L.Normalization()
         ])
 
         self.conv_merge = Sequential([
-            tfk.layers.Conv2D(
+            L.Conv2D(
                 256,
                 3,
                 1,
@@ -31,7 +30,7 @@ class UpsampleMerge(Model):
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            Normalization()
+            L.Normalization()
         ])
 
     # TODO: refactor upsampling to function
@@ -61,7 +60,7 @@ class FeaturePyramidNetwork(Model):
         super().__init__(name=name)
 
         self.p6_from_c5 = Sequential([
-            tfk.layers.Conv2D(
+            L.Conv2D(
                 256,
                 3,
                 2,
@@ -69,12 +68,12 @@ class FeaturePyramidNetwork(Model):
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            Normalization()
+            L.Normalization()
         ])
 
         self.p7_from_p6 = Sequential([
-            tfk.layers.Activation(tf.nn.relu),
-            tfk.layers.Conv2D(
+            L.Activation(tf.nn.relu),
+            L.Conv2D(
                 256,
                 3,
                 2,
@@ -82,18 +81,18 @@ class FeaturePyramidNetwork(Model):
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            Normalization()
+            L.Normalization()
         ])
 
         self.p5_from_c5 = Sequential([
-            tfk.layers.Conv2D(
+            L.Conv2D(
                 256,
                 1,
                 1,
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            Normalization()
+            L.Normalization()
         ])
 
         self.p4_from_c4p5 = UpsampleMerge(

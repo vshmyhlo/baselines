@@ -1,8 +1,18 @@
 import tensorflow as tf
-import tensorflow.keras as tfk
+from tensorflow.layers import Layer, Conv2D, BatchNormalization, Dropout, MaxPooling2D, AveragePooling2D
 
 
-class GroupNormalization(tfk.layers.Layer):
+class Activation(Layer):
+    def __init__(self, activation, name='activation'):
+        super().__init__(name=name)
+
+        self.activation = activation
+
+    def call(self, input):
+        return self.activation(input)
+
+
+class GroupNormalization(Layer):
     def __init__(self, groups=32, eps=1e-5, name='group_normalization'):
         super().__init__(name=name)
 
@@ -18,7 +28,7 @@ class GroupNormalization(tfk.layers.Layer):
 
         super().build(input_shape)
 
-    def call(self, input, training):  # TODO: remove training
+    def call(self, input):
         n, h, w, _ = tf.unstack(tf.shape(input))
         _, _, _, c = input.shape
 
@@ -37,7 +47,7 @@ class GroupNormalization(tfk.layers.Layer):
 
 
 # TODO: use_bias
-class DepthwiseConv2D(tfk.layers.Layer):
+class DepthwiseConv2D(Layer):
     def __init__(self,
                  kernel_size,
                  strides,

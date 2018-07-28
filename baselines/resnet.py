@@ -1,6 +1,6 @@
 import tensorflow as tf
-import tensorflow.keras as tfk
-from baselines.utils import Model, Sequential
+from baselines.models import Model, Sequential
+import baselines.layers as L
 
 
 # TODO: make baseclass
@@ -14,7 +14,7 @@ class ConvInput(Sequential):
                  kernel_regularizer,
                  name='conv_input'):
         layers = [
-            tfk.layers.Conv2D(
+            L.Conv2D(
                 filters,
                 7,
                 strides=2,
@@ -22,8 +22,8 @@ class ConvInput(Sequential):
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.BatchNormalization(fused=True),
-            tfk.layers.Activation(tf.nn.relu)
+            L.BatchNormalization(fused=True),
+            L.Activation(tf.nn.relu)
         ]
 
         super().__init__(layers, name=name)
@@ -37,30 +37,30 @@ class Bottleneck(Model):
                  name='bottleneck'):
         super().__init__(name=name)
 
-        self.conv_1 = tfk.layers.Conv2D(
+        self.conv_1 = L.Conv2D(
             filters // 4,
             1,
             use_bias=False,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
-        self.bn_1 = tfk.layers.BatchNormalization(fused=True)
+        self.bn_1 = L.BatchNormalization(fused=True)
 
-        self.conv_2 = tfk.layers.Conv2D(
+        self.conv_2 = L.Conv2D(
             filters // 4,
             3,
             padding='same',
             use_bias=False,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
-        self.bn_2 = tfk.layers.BatchNormalization(fused=True)
+        self.bn_2 = L.BatchNormalization(fused=True)
 
-        self.conv_3 = tfk.layers.Conv2D(
+        self.conv_3 = L.Conv2D(
             filters,
             1,
             use_bias=False,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
-        self.bn_3 = tfk.layers.BatchNormalization(fused=True)
+        self.bn_3 = L.BatchNormalization(fused=True)
 
     def call(self, input, training):
         identity = input
@@ -89,7 +89,7 @@ class BottleneckDown(Model):
                  name='bottleneck_down'):
         super().__init__(name=name)
 
-        self.conv_identity = tfk.layers.Conv2D(
+        self.conv_identity = L.Conv2D(
             filters,
             3,
             strides=2,
@@ -97,17 +97,17 @@ class BottleneckDown(Model):
             use_bias=False,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
-        self.bn_identity = tfk.layers.BatchNormalization(fused=True)
+        self.bn_identity = L.BatchNormalization(fused=True)
 
-        self.conv_1 = tfk.layers.Conv2D(
+        self.conv_1 = L.Conv2D(
             filters // 4,
             1,
             use_bias=False,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
-        self.bn_1 = tfk.layers.BatchNormalization(fused=True)
+        self.bn_1 = L.BatchNormalization(fused=True)
 
-        self.conv_2 = tfk.layers.Conv2D(
+        self.conv_2 = L.Conv2D(
             filters // 4,
             3,
             strides=2,
@@ -115,15 +115,15 @@ class BottleneckDown(Model):
             use_bias=False,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
-        self.bn_2 = tfk.layers.BatchNormalization(fused=True)
+        self.bn_2 = L.BatchNormalization(fused=True)
 
-        self.conv_3 = tfk.layers.Conv2D(
+        self.conv_3 = L.Conv2D(
             filters,
             1,
             use_bias=False,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
-        self.bn_3 = tfk.layers.BatchNormalization(fused=True)
+        self.bn_3 = L.BatchNormalization(fused=True)
 
     def call(self, input, training):
         identity = input

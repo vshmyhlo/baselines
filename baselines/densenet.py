@@ -1,6 +1,6 @@
 import tensorflow as tf
-import tensorflow.keras as tfk
-from baselines.utils import Model, Sequential
+from baselines.models import Model, Sequential
+import baselines.layers as L
 
 
 class CompositeFunction(Sequential):
@@ -11,16 +11,16 @@ class CompositeFunction(Sequential):
                  kernel_regularizer,
                  name='composite_function'):
         layers = [
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Activation(tf.nn.relu),
-            tfk.layers.Conv2D(
+            L.BatchNormalization(),
+            L.Activation(tf.nn.relu),
+            L.Conv2D(
                 filters,
                 3,
                 padding='same',
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.Dropout(dropout_rate),
+            L.Dropout(dropout_rate),
         ]
 
         super().__init__(layers, name=name)
@@ -34,25 +34,25 @@ class BottleneckCompositeFunction(Sequential):
                  kernel_regularizer,
                  name='bottleneck_composite_function'):
         layers = [
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Activation(tf.nn.relu),
-            tfk.layers.Conv2D(
+            L.BatchNormalization(),
+            L.Activation(tf.nn.relu),
+            L.Conv2D(
                 filters * 4,
                 1,
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.Dropout(dropout_rate),
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Activation(tf.nn.relu),
-            tfk.layers.Conv2D(
+            L.Dropout(dropout_rate),
+            L.BatchNormalization(),
+            L.Activation(tf.nn.relu),
+            L.Conv2D(
                 filters,
                 3,
                 padding='same',
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.Dropout(dropout_rate),
+            L.Dropout(dropout_rate),
         ]
 
         super().__init__(layers, name=name)
@@ -109,15 +109,15 @@ class TransitionLayer(Sequential):
         filters = int(input_filters * compression_factor)
 
         layers = [
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Conv2D(
+            L.BatchNormalization(),
+            L.Conv2D(
                 filters,
                 1,
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.Dropout(dropout_rate),
-            tfk.layers.AveragePooling2D(2, 2, padding='same')
+            L.Dropout(dropout_rate),
+            L.AveragePooling2D(2, 2, padding='same')
         ]
 
         super().__init__(layers, name=name)
@@ -140,7 +140,7 @@ class DenseNetBC_ImageNet(Model):
         super().__init__(name=name)
 
         self.conv_1 = Sequential([
-            tfk.layers.Conv2D(
+            L.Conv2D(
                 2 * growth_rate,
                 7,
                 2,
@@ -149,10 +149,10 @@ class DenseNetBC_ImageNet(Model):
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
                 name='conv1'),
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Activation(tf.nn.relu)
+            L.BatchNormalization(),
+            L.Activation(tf.nn.relu)
         ])
-        self.conv_1_max_pool = tfk.layers.MaxPooling2D(3, 2, padding='same')
+        self.conv_1_max_pool = L.MaxPooling2D(3, 2, padding='same')
 
         self.dense_block_1 = DenseNet_Block(
             growth_rate,

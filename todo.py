@@ -8,3 +8,5 @@
 # TODO: make dropout optional
 # TODO: use sequantial where possible
 # TODO: use Normalization where possible
+# TODO: how to keep layers in array?
+# TODO: deal with LayerList

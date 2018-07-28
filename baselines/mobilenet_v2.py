@@ -1,6 +1,6 @@
 import tensorflow as tf
-import tensorflow.keras as tfk
-import baselines.layers as layers
+import baselines.layers as L
+from baselines.models import Model, Sequential
 
 
 # TODO: do not use _ prefix anywhere
@@ -16,7 +16,7 @@ import baselines.layers as layers
 # TODO: check shapes
 
 
-class Bottleneck(tfk.Model):
+class Bottleneck(Model):
     def __init__(self,
                  filters,
                  strides,
@@ -27,40 +27,40 @@ class Bottleneck(tfk.Model):
                  name='bottleneck'):
         super().__init__(name=name)
 
-        self.expand_conv = tfk.Sequential([
-            tfk.layers.Conv2D(
+        self.expand_conv = Sequential([
+            L.Conv2D(
                 filters * expansion_factor,  # FIXME: should be `input_shape[3].value * expansion_factor`
                 1,
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Activation(tf.nn.relu6),
-            tfk.layers.Dropout(dropout_rate)
+            L.BatchNormalization(),
+            L.Activation(tf.nn.relu6),
+            L.Dropout(dropout_rate)
         ])
 
-        self.depthwise_conv = tfk.Sequential([
-            layers.DepthwiseConv2D(
+        self.depthwise_conv = Sequential([
+            L.DepthwiseConv2D(
                 3,
                 strides=strides,
                 padding='same',
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Activation(tf.nn.relu6),
-            tfk.layers.Dropout(dropout_rate)
+            L.BatchNormalization(),
+            L.Activation(tf.nn.relu6),
+            L.Dropout(dropout_rate)
         ])
 
-        self.linear_conv = tfk.Sequential([
-            tfk.layers.Conv2D(
+        self.linear_conv = Sequential([
+            L.Conv2D(
                 filters,
                 1,
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Dropout(dropout_rate)
+            L.BatchNormalization(),
+            L.Dropout(dropout_rate)
         ])
 
     def call(self, input, training):
@@ -77,7 +77,7 @@ class Bottleneck(tfk.Model):
         return input
 
 
-class MobileNetV2(tfk.Model):
+class MobileNetV2(Model):
     def __init__(self, dropout_rate, name='mobilenet_v2'):
         super().__init__(name=name)
 
@@ -85,8 +85,8 @@ class MobileNetV2(tfk.Model):
             factor=2.0, mode='FAN_IN', uniform=False)
         kernel_regularizer = tf.contrib.layers.l2_regularizer(scale=4e-5)
 
-        self.input_conv = tfk.Sequential([
-            tfk.layers.Conv2D(
+        self.input_conv = Sequential([
+            L.Conv2D(
                 32,
                 3,
                 strides=2,
@@ -94,9 +94,9 @@ class MobileNetV2(tfk.Model):
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Activation(tf.nn.relu6),
-            tfk.layers.Dropout(dropout_rate)
+            L.BatchNormalization(),
+            L.Activation(tf.nn.relu6),
+            L.Dropout(dropout_rate)
         ])
 
         self.bottleneck_1_1 = Bottleneck(
@@ -157,16 +157,16 @@ class MobileNetV2(tfk.Model):
             320, expansion_factor=6, strides=1, dropout_rate=dropout_rate, kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
 
-        self.output_conv = tfk.Sequential([
-            tfk.layers.Conv2D(
+        self.output_conv = Sequential([
+            L.Conv2D(
                 32,
                 1,
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer),
-            tfk.layers.BatchNormalization(),
-            tfk.layers.Activation(tf.nn.relu6),
-            tfk.layers.Dropout(dropout_rate)
+            L.BatchNormalization(),
+            L.Activation(tf.nn.relu6),
+            L.Dropout(dropout_rate)
         ])
 
     def call(self, input, training):
