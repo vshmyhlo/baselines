@@ -37,44 +37,45 @@ class Bottleneck(Model):
                  name='bottleneck'):
         super().__init__(name=name)
 
-        self.conv_1 = L.Conv2D(
-            filters // 4,
-            1,
-            use_bias=False,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)
-        self.bn_1 = L.BatchNormalization(fused=True)
+        self.conv_1 = Sequential([
+            L.Conv2D(
+                filters // 4,
+                1,
+                use_bias=False,
+                kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer),
+            L.BatchNormalization(fused=True),
+            L.Activation(tf.nn.relu)
+        ])
 
-        self.conv_2 = L.Conv2D(
-            filters // 4,
-            3,
-            padding='same',
-            use_bias=False,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)
-        self.bn_2 = L.BatchNormalization(fused=True)
+        self.conv_2 = Sequential([
+            L.Conv2D(
+                filters // 4,
+                3,
+                padding='same',
+                use_bias=False,
+                kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer),
+            L.BatchNormalization(fused=True),
+            L.Activation(tf.nn.relu)
+        ])
 
-        self.conv_3 = L.Conv2D(
-            filters,
-            1,
-            use_bias=False,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)
-        self.bn_3 = L.BatchNormalization(fused=True)
+        self.conv_3 = Sequential([
+            L.Conv2D(
+                filters,
+                1,
+                use_bias=False,
+                kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer),
+            L.BatchNormalization(fused=True)
+        ])
 
     def call(self, input, training):
         identity = input
 
-        input = self.conv_1(input)
-        input = self.bn_1(input, training=training)
-        input = tf.nn.relu(input)
-
-        input = self.conv_2(input)
-        input = self.bn_2(input, training=training)
-        input = tf.nn.relu(input)
-
-        input = self.conv_3(input)
-        input = self.bn_3(input, training=training)
+        input = self.conv_1(input, training=training)
+        input = self.conv_2(input, training=training)
+        input = self.conv_3(input, training=training)
         input = input + identity
         input = tf.nn.relu(input)
 
@@ -89,57 +90,59 @@ class BottleneckDown(Model):
                  name='bottleneck_down'):
         super().__init__(name=name)
 
-        self.conv_identity = L.Conv2D(
-            filters,
-            3,
-            strides=2,
-            padding='same',
-            use_bias=False,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)
-        self.bn_identity = L.BatchNormalization(fused=True)
+        self.conv_identity = Sequential([
+            L.Conv2D(
+                filters,
+                3,
+                strides=2,
+                padding='same',
+                use_bias=False,
+                kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer),
+            L.BatchNormalization(fused=True)
+        ])
 
-        self.conv_1 = L.Conv2D(
-            filters // 4,
-            1,
-            use_bias=False,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)
-        self.bn_1 = L.BatchNormalization(fused=True)
+        self.conv_1 = Sequential([
+            L.Conv2D(
+                filters // 4,
+                1,
+                use_bias=False,
+                kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer),
+            L.BatchNormalization(fused=True),
+            L.Activation(tf.nn.relu)
+        ])
 
-        self.conv_2 = L.Conv2D(
-            filters // 4,
-            3,
-            strides=2,
-            padding='same',
-            use_bias=False,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)
-        self.bn_2 = L.BatchNormalization(fused=True)
+        self.conv_2 = Sequential([
+            L.Conv2D(
+                filters // 4,
+                3,
+                strides=2,
+                padding='same',
+                use_bias=False,
+                kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer),
+            L.BatchNormalization(fused=True),
+            L.Activation(tf.nn.relu)
+        ])
 
-        self.conv_3 = L.Conv2D(
-            filters,
-            1,
-            use_bias=False,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)
-        self.bn_3 = L.BatchNormalization(fused=True)
+        self.conv_3 = Sequential([
+            L.Conv2D(
+                filters,
+                1,
+                use_bias=False,
+                kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer),
+            L.BatchNormalization(fused=True)
+        ])
 
     def call(self, input, training):
         identity = input
-        identity = self.conv_identity(identity)
-        identity = self.bn_identity(identity, training=training)
+        identity = self.conv_identity(identity, training=training)
 
-        input = self.conv_1(input)
-        input = self.bn_1(input, training=training)
-        input = tf.nn.relu(input)
-
-        input = self.conv_2(input)
-        input = self.bn_2(input, training=training)
-        input = tf.nn.relu(input)
-
-        input = self.conv_3(input)
-        input = self.bn_3(input, training=training)
+        input = self.conv_1(input, training=training)
+        input = self.conv_2(input, training=training)
+        input = self.conv_3(input, training=training)
         input = input + identity
         input = tf.nn.relu(input)
 
