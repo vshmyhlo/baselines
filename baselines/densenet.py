@@ -58,7 +58,7 @@ class BottleneckCompositeFunction(Sequential):
         super().__init__(layers, name=name)
 
 
-class DenseNet_Block(Sequential):
+class DenseBlock(Model):
     def __init__(self,
                  growth_rate,
                  depth,
@@ -67,27 +67,26 @@ class DenseNet_Block(Sequential):
                  kernel_initializer,
                  kernel_regularizer,
                  name='densnet_block'):
+        super().__init__(name=name)
 
-        layers = []
+        self.layers = []
         for i in range(depth):
             if bottleneck:
-                layers.append(
+                self.layers.append(
                     BottleneckCompositeFunction(
                         growth_rate,
                         dropout_rate=dropout_rate,
                         kernel_initializer=kernel_initializer,
                         kernel_regularizer=kernel_regularizer,
-                        name='composite_function{}'.format(i + 1)))
+                        name='composite_function_{}'.format(i + 1)))
             else:
-                layers.append(
+                self.layers.append(
                     CompositeFunction(
                         growth_rate,
                         dropout_rate=dropout_rate,
                         kernel_initializer=kernel_initializer,
                         kernel_regularizer=kernel_regularizer,
-                        name='composite_function{}'.format(i + 1)))
-
-        super().__init__(layers, name=name)
+                        name='composite_function_{}'.format(i + 1)))
 
     def call(self, input, training):
         for layer in self.layers:
@@ -124,6 +123,7 @@ class TransitionLayer(Sequential):
 
     def call(self, input, training):
         assert input.shape[-1] == self.input_filters
+
         return super().call(input, training)
 
 
@@ -148,20 +148,20 @@ class DenseNetBC_ImageNet(Model):
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
                 kernel_regularizer=kernel_regularizer,
-                name='conv1'),
+                name='conv_1'),
             L.BatchNormalization(),
             L.Activation(tf.nn.relu)
         ])
         self.conv_1_max_pool = L.MaxPooling2D(3, 2, padding='same')
 
-        self.dense_block_1 = DenseNet_Block(
+        self.dense_block_1 = DenseBlock(
             growth_rate,
             depth=blocks[1],
             bottleneck=bottleneck,
             dropout_rate=dropout_rate,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer,
-            name='dense_block1')
+            name='dense_block_1')
 
         self.transition_layer_1 = TransitionLayer(
             input_filters=blocks[1] * growth_rate + 64,
@@ -171,14 +171,14 @@ class DenseNetBC_ImageNet(Model):
             kernel_regularizer=kernel_regularizer,
             name='transition_layer_1')
 
-        self.dense_block_2 = DenseNet_Block(
+        self.dense_block_2 = DenseBlock(
             growth_rate,
             depth=blocks[2],
             bottleneck=bottleneck,
             dropout_rate=dropout_rate,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer,
-            name='dense_block2')
+            name='dense_block_2')
 
         self.transition_layer_2 = TransitionLayer(
             input_filters=blocks[2] * growth_rate + self.transition_layer_1.layers[1].filters,  # FIXME:
@@ -188,14 +188,14 @@ class DenseNetBC_ImageNet(Model):
             kernel_regularizer=kernel_regularizer,
             name='transition_layer_2')
 
-        self.dense_block_3 = DenseNet_Block(
+        self.dense_block_3 = DenseBlock(
             growth_rate,
             depth=blocks[3],
             bottleneck=bottleneck,
             dropout_rate=dropout_rate,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer,
-            name='dense_block3')
+            name='dense_block_3')
 
         self.transition_layer_3 = TransitionLayer(
             input_filters=blocks[3] * growth_rate + self.transition_layer_2.layers[1].filters,  # FIXME:
@@ -205,14 +205,14 @@ class DenseNetBC_ImageNet(Model):
             kernel_regularizer=kernel_regularizer,
             name='transition_layer_3')
 
-        self.dense_block_4 = DenseNet_Block(
+        self.dense_block_4 = DenseBlock(
             growth_rate,
             depth=blocks[4],
             bottleneck=bottleneck,
             dropout_rate=dropout_rate,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer,
-            name='dense_block4')
+            name='dense_block_4')
 
     def call(self, input, training):
         input = self.conv_1(input, training)
