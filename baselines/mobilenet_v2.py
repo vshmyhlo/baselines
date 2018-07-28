@@ -70,20 +70,26 @@ class Bottleneck(Model):
         input = self.depthwise_conv(input, training)
         input = self.linear_conv(input, training)
 
-        if input.shape == identity.shape:
-            print('same shape')
+        if input.shape == identity.shape:  # TODO: check this is used
             input = input + identity
 
         return input
 
 
 class MobileNetV2(Model):
-    def __init__(self, dropout_rate, name='mobilenet_v2'):
-        super().__init__(name=name)
+    def __init__(self,
+                 dropout_rate,
+                 kernel_initializer=None,
+                 kernel_regularizer=None,
+                 name='mobilenet_v2'):
+        if kernel_initializer is None:
+            kernel_initializer = tf.contrib.layers.variance_scaling_initializer(
+                factor=2.0, mode='FAN_IN', uniform=False)
 
-        kernel_initializer = tf.contrib.layers.variance_scaling_initializer(
-            factor=2.0, mode='FAN_IN', uniform=False)
-        kernel_regularizer = tf.contrib.layers.l2_regularizer(scale=4e-5)
+        if kernel_regularizer is None:
+            kernel_regularizer = tf.contrib.layers.l2_regularizer(scale=4e-5)
+
+        super().__init__(name=name)
 
         self.input_conv = Sequential([
             L.Conv2D(
