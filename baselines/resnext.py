@@ -1,7 +1,7 @@
 import tensorflow as tf
-from baselines.models import Model
+from baselines.models import Model, Sequential
 import baselines.layers as L
-
+import enum
 
 # TODO: rename bn to norm
 # TODO: make baseclass
@@ -15,107 +15,109 @@ import baselines.layers as L
 # TODO: bn after concat
 # TODO: do not use sequential in densenet for concat blocks
 
+ProjectionType = enum.Enum('ProjectionType', ['NONE', 'DOWN', 'CONV'])
+
 
 class ResNeXt_Bottleneck(Model):
     def __init__(self,
                  filters,
-                 project,
+                 projection_type,
                  kernel_initializer,
                  kernel_regularizer,
                  cardinality=32,
                  name='resnext_bottleneck'):
         assert filters % cardinality == 0
-        assert project in [True, False, 'down']
+        assert projection_type in ProjectionType
 
         super().__init__(name=name)
 
         # identity
-        if project == 'down':  # TODO: refactor to enum
-            self.identity_conv = L.Conv2D(
-                filters * 4,
-                3,
-                2,
-                padding='same',
-                use_bias=False,
-                kernel_initializer=kernel_initializer,
-                kernel_regularizer=kernel_regularizer)
-            self.identity_bn = L.BatchNormalization()
+        if projection_type is ProjectionType.DOWN:
+            self.conv_identity = Sequential([
+                L.Conv2D(
+                    filters * 4,
+                    3,
+                    2,
+                    padding='same',
+                    use_bias=False,
+                    kernel_initializer=kernel_initializer,
+                    kernel_regularizer=kernel_regularizer),
+                L.BatchNormalization()
+            ])
+        elif projection_type is ProjectionType.CONV:
+            self.conv_identity = Sequential([
+                L.Conv2D(
+                    filters * 4,
+                    1,
+                    use_bias=False,
+                    kernel_initializer=kernel_initializer,
+                    kernel_regularizer=kernel_regularizer),
+                L.BatchNormalization()
+            ])
+        elif projection_type is ProjectionType.NONE:
+            self.conv_identity = None
 
-        elif project:
-            self.identity_conv = L.Conv2D(
-                filters * 4,
+        # conv_1
+        self.conv_1 = Sequential([
+            L.Conv2D(
+                filters * 2,
                 1,
                 use_bias=False,
                 kernel_initializer=kernel_initializer,
-                kernel_regularizer=kernel_regularizer)
-            self.identity_bn = L.BatchNormalization()
-        else:
-            self.identity_conv = None
-            self.identity_bn = None
-
-        # conv_1
-        self.conv_1 = L.Conv2D(
-            filters * 2,
-            1,
-            use_bias=False,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)
-        self.bn_1 = L.BatchNormalization()
+                kernel_regularizer=kernel_regularizer),
+            L.BatchNormalization(),
+            L.Activation(tf.nn.relu)
+        ])
 
         # conv_2
         self.conv_2 = []
         for _ in range(cardinality):
-            strides = 2 if project == 'down' else 1
-            conv = L.Conv2D(
-                (filters * 2) // cardinality,
-                3,
-                strides,
-                padding='same',
-                use_bias=False,
-                kernel_initializer=kernel_initializer,
-                kernel_regularizer=kernel_regularizer)
-            self.conv_2.append(conv)
+            strides = 2 if projection_type is ProjectionType.DOWN else 1
 
-        self.bn_2 = []
-        for _ in range(cardinality):
-            bn = L.BatchNormalization()
-            self.bn_2.append(bn)
+            self.conv_2.append(
+                L.Conv2D(
+                    (filters * 2) // cardinality,
+                    3,
+                    strides,
+                    padding='same',
+                    use_bias=False,
+                    kernel_initializer=kernel_initializer,
+                    kernel_regularizer=kernel_regularizer))
+
+        self.bn_2 = L.BatchNormalization()
 
         # conv_3
-        self.conv_3 = L.Conv2D(
-            filters * 4,
-            1,
-            use_bias=False,
-            kernel_initializer=kernel_initializer,
-            kernel_regularizer=kernel_regularizer)
-        self.bn_3 = L.BatchNormalization()
+        self.conv_3 = Sequential([
+            L.Conv2D(
+                filters * 4,
+                1,
+                use_bias=False,
+                kernel_initializer=kernel_initializer,
+                kernel_regularizer=kernel_regularizer),
+            L.BatchNormalization()
+        ])
 
     def call(self, input, training):
         # identity
         identity = input
-        if self.identity_conv is not None:
-            identity = self.identity_conv(identity)
-        if self.identity_bn is not None:
-            identity = self.identity_bn(identity, training=training)
+        if self.conv_identity is not None:
+            identity = self.conv_identity(identity, training=training)
 
         # conv_1
-        input = self.conv_1(input)
-        input = self.bn_1(input, training=training)
-        input = tf.nn.relu(input)
+        input = self.conv_1(input, training=training)
 
         # conv_2
         splits = tf.split(input, len(self.conv_2), -1)
         transformations = []
-        for split, conv, bn in zip(splits, self.conv_2, self.bn_2):
+        for split, conv in zip(splits, self.conv_2):
             split = conv(split)
-            split = bn(split, training=training)
-            split = tf.nn.relu(split)
             transformations.append(split)
         input = tf.concat(transformations, -1)
+        input = self.bn_2(input, training=training)
+        input = tf.nn.relu(input)
 
         # conv_3
-        input = self.conv_3(input)
-        input = self.bn_3(input, training=training)
+        input = self.conv_3(input, training=training)
         input = input + identity
         input = tf.nn.relu(input)
 
@@ -133,20 +135,20 @@ class ResNeXt_Block(Model):
                  name='resnext_block'):
         super().__init__(name=name)
 
-        layers = []
+        self.layers = []
 
         for i in range(depth):
             if i == 0:
-                project = 'down' if downsample else True
+                projection_type = ProjectionType.DOWN if downsample else ProjectionType.CONV
             else:
-                project = False
+                projection_type = ProjectionType.NONE
 
-            layer = ResNeXt_Bottleneck(
-                filters, project=project, kernel_initializer=kernel_initializer,
-                kernel_regularizer=kernel_regularizer)
-            layers.append(layer)
-
-        self.layers = layers
+            self.layers.append(
+                ResNeXt_Bottleneck(
+                    filters,
+                    projection_type=projection_type,
+                    kernel_initializer=kernel_initializer,
+                    kernel_regularizer=kernel_regularizer))
 
     def call(self, input, training):
         for layer in self.layers:
@@ -211,35 +213,30 @@ class ResNeXt_50(ResNeXt):
 
         super().__init__(name=name)
 
-        self.conv_1 = ResNeXt_ConvInput(
-            kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer)
+        self.conv_1 = ResNeXt_ConvInput(kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer)
         self.conv_1_max_pool = L.MaxPooling2D(3, 2, padding='same')
 
         self.conv_2 = ResNeXt_Block(
-            filters=64, depth=3, downsample=False, kernel_initializer=kernel_initializer,
+            filters=64,
+            depth=3,
+            downsample=False,
+            kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
         self.conv_3 = ResNeXt_Block(
-            filters=128, depth=4, downsample=True, kernel_initializer=kernel_initializer,
+            filters=128,
+            depth=4,
+            downsample=True,
+            kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
         self.conv_4 = ResNeXt_Block(
-            filters=256, depth=6, downsample=True, kernel_initializer=kernel_initializer,
+            filters=256,
+            depth=6,
+            downsample=True,
+            kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
         self.conv_5 = ResNeXt_Block(
-            filters=512, depth=3, downsample=True, kernel_initializer=kernel_initializer,
+            filters=512,
+            depth=3,
+            downsample=True,
+            kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer)
-
-
-def main():
-    image = tf.zeros((8, 224, 224, 3))
-
-    net = ResNeXt_50()
-    output = net(image, training=True)
-
-    for k in output:
-        shape = output[k].shape
-        assert shape[1] == shape[2] == 224 // 2**int(k[1:]), 'invalid shape {} for layer {}'.format(shape, k)
-        print(output[k])
-
-
-if __name__ == '__main__':
-    main()
