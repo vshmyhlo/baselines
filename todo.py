@@ -13,3 +13,4 @@
 # TODO: remove redundant `name`
 # TODO: use channelwise dropout for models with dropout
 # TODO: use consistent style
+# TODO: shapes for fpn and retinanet should be defined if possible
