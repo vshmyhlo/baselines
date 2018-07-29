@@ -1,6 +1,9 @@
 # Idiomatic implementations of common Neural Network architectures in TensorFlow (work in progress)
 
-### TODO:
-* use channelwise dropout for models with dropout
-* rewrite with tf.keras
-* use consistent style
+### Currently implemented:
+* [ResNet](./baselines/resnet.py)
+* [ResNeXt](./baselines/resnext.py)
+* [DenseNet](./baselines/densenet.py)
+* [MobileNetV2](./baselines/mobilenet_v2.py)
+* [Feature Pyramid Network](./baselines/fpn.py)
+

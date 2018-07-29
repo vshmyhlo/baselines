@@ -11,3 +11,5 @@
 # TODO: how to keep layers in array?
 # TODO: deal with LayerList
 # TODO: remove redundant `name`
+# TODO: use channelwise dropout for models with dropout
+# TODO: use consistent style
