@@ -4,8 +4,6 @@ import baselines.layers as L
 import enum
 
 # TODO: rename bn to norm
-# TODO: make baseclass
-# TODO: use enum for downsample type
 # TODO: remove redundant `name`
 # TODO: check initialization
 # TODO: check regularization
@@ -13,7 +11,6 @@ import enum
 # TODO: check training arg
 # TODO: remove bias where not needed
 # TODO: bn after concat
-# TODO: do not use sequential in densenet for concat blocks
 
 ProjectionType = enum.Enum('ProjectionType', ['NONE', 'DOWN', 'CONV'])
 

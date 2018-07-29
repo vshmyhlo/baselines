@@ -106,6 +106,7 @@ class FeaturePyramidNetwork(Model):
             name='upsample_merge_c3p4')
 
     def call(self, input, training):
+        # TODO: rename
         P6 = self.p6_from_c5(input['C5'], training)
         P7 = self.p7_from_p6(P6, training)
         P5 = self.p5_from_c5(input['C5'], training)
