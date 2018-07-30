@@ -3,14 +3,12 @@ from baselines.models import Model, Sequential
 import baselines.layers as L
 import enum
 
-# TODO: rename bn to norm
 # TODO: remove redundant `name`
 # TODO: check initialization
 # TODO: check regularization
-# TODO: check resize-conv (upsampling)
 # TODO: check training arg
 # TODO: remove bias where not needed
-# TODO: bn after concat
+# TODO: norm after concat
 
 ProjectionType = enum.Enum('ProjectionType', ['NONE', 'DOWN', 'CONV'])
 
@@ -121,7 +119,7 @@ class ResNeXt_Bottleneck(Model):
         return input
 
 
-# TODO:
+# TODO: better names
 class ResNeXt_Block(Model):
     def __init__(self,
                  filters,

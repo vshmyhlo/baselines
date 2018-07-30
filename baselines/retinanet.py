@@ -100,7 +100,6 @@ class RetinaNet(Model):
     def __init__(self,
                  num_classes,
                  num_anchors,
-                 # dropout_rate,  # TODO: should use dropout?
                  kernel_initializer=None,
                  kernel_regularizer=None,
                  name='retinanet'):

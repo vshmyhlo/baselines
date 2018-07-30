@@ -3,16 +3,10 @@ import baselines.layers as L
 from baselines.models import Model, Sequential
 
 
-# TODO: do not use _ prefix anywhere
-# TODO: refactor without network
-# TODO: remove `track_layer(...)` stuff
-# TODO: initialization
-# TODO: reegularization
-# TODO: batchnorm
-# TODO: activation parameter
-# TODO: check relu6
-# TODO: dropout
-# TODO: private fields
+# TODO: check initialization
+# TODO: check regularization
+# TODO: replace BatchNormalization with Normalization
+# TODO: check dropout usage
 # TODO: check shapes
 
 

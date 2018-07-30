@@ -3,6 +3,8 @@ from baselines.models import Model, Sequential
 import baselines.layers as L
 
 
+# TODO: check resize-conv (upsampling)
+
 class UpsampleMerge(Model):
     def __init__(self,
                  kernel_initializer,
@@ -106,7 +108,7 @@ class FeaturePyramidNetwork(Model):
             name='upsample_merge_c3p4')
 
     def call(self, input, training):
-        # TODO: rename
+        # TODO: better rename
         P6 = self.p6_from_c5(input['C5'], training)
         P7 = self.p7_from_p6(P6, training)
         P5 = self.p5_from_c5(input['C5'], training)

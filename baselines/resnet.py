@@ -5,7 +5,6 @@ import baselines.layers as L
 
 # TODO: make baseclass
 # TODO: use maxpool as 2nd layer
-# TODO: fused bn
 
 class ConvInput(Sequential):
     def __init__(self,

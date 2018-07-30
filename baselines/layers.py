@@ -46,7 +46,7 @@ class GroupNormalization(Layer):
         return input
 
 
-# TODO: use_bias
+# TODO: implement use_bias
 class DepthwiseConv2D(Layer):
     def __init__(self,
                  kernel_size,

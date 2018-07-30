@@ -14,3 +14,7 @@
 # TODO: use channelwise dropout for models with dropout
 # TODO: use consistent style
 # TODO: shapes for fpn and retinanet should be defined if possible
+# TODO: use dropout in RetinaNet?
+# TODO: rename bn to norm
+# TODO: fused bn
+# TODO: use gn instead of bn
