@@ -13,3 +13,4 @@
 # TODO: rename bn to norm
 # TODO: fused bn
 # TODO: use gn instead of bn
+# TODO: remove bias where not needed

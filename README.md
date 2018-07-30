@@ -1,4 +1,4 @@
-# Idiomatic and modular implementations of common Deep Learning architectures in TensorFlow 
+# Idiomatic and modular implementations of common Deep Learning architectures in [TensorFlow](https://www.tensorflow.org/) 
 
 ### Currently implemented:
 * [ResNet](./baselines/resnet.py)
